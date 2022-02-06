@@ -1,0 +1,110 @@
+Yulya Akhremchyk
+Homework 3, ex. 4.
+
+-- 1) Вывести ID всех заказов, которые были сделаны в 2011 году в выходные дни.
+SELECT [PurchaseOrderID], DATENAME(weekday, [OrderDate]) AS Weekday, YEAR([OrderDate]) AS Year
+FROM [Purchasing].[PurchaseOrderHeader] oh
+WHERE DATENAME(weekday, [OrderDate]) IN ('Saturday', 'Sunday')
+	AND YEAR([OrderDate]) = '2011'
+
+-- 2) Вывести наименования всех новых товаров, поступавших в продажу в пятницу 13-го.
+SELECT [Name]
+FROM [Production].[Product]
+WHERE DAY([SellStartDate]) = '13'
+	AND DATENAME(weekday, [SellStartDate]) = 'Friday'
+
+-- 3) Вывести ID всех продавцов и сумму отправленных ими заказов в декабре 2013 года.
+SELECT  [VendorID], SUM([SubTotal]) AS SumOrder
+FROM [Purchasing].[PurchaseOrderHeader]
+WHERE MONTH([ShipDate]) = '12'
+	AND YEAR([ShipDate]) = '2013'
+GROUP BY [VendorID]
+
+ /* 4) Вывести имена всех продавцов с комментарием об их кредитном рейтинге.
+Если рейтинг равен 3 и 4, значит, продавец надежный ('Reliable'), в иных случаях - нет ('Unreliable'). */
+SELECT [Name], IIF (([CreditRating]= 4 or [CreditRating] = 3), 'Reliable', 'Unreliable')
+FROM [Purchasing].[Vendor]
+
+-- 5) Вывести названия всех товаров и их цены, округленные до целого цисла.
+SELECT [Name], ROUND([ListPrice], 0)
+FROM [Production].[Product]
+
+-- 6) Вывести имя человека и его фамилию из таблицы [Person].[Person]. Фамилию вывести прописными буквами.
+SELECT [FirstName], UPPER ([LastName])
+FROM [Person].[Person]
+
+/* 7) Вывести названия всех департаментов, их подразделений и все возможные для каждого подразделения рабочие смены. 
+Названия рабочих смен отобразить строчными буквами. */
+SELECT DISTINCT d.Name, (SELECT DISTINCT d.[GroupName]) AS SubDepartment, LOWER (sh.[Name]) AS Shift
+FROM [HumanResources].[Shift] sh
+	JOIN [HumanResources].[EmployeeDepartmentHistory] edh ON sh.ShiftID = edh.ShiftID
+	JOIN [HumanResources].[Department] d ON edh.DepartmentID = d.DepartmentID
+
+-- 8) Вывести ID заказа его статус в формате 'Order status is <status>' из таблицы [Purchasing].[PurchaseOrderHeader].
+SELECT [PurchaseOrderID], FORMAT ([Status], 'Order status is #')
+FROM [Purchasing].[PurchaseOrderHeader]
+
+-- 9) В адресах из таблицы [Person].[Address] заменить 'avenue' на сокращение 'ave'.
+SELECT [City], REPLACE([AddressLine1], 'avenue', 'ave')
+FROM [Person].[Address]
+
+-- 10) В номерах телефонов из таблицы [Person].[PersonPhone] заменить скобки и дефисы на пробелы.
+SELECT [PhoneNumber], TRANSLATE ([PhoneNumber],'()-','   ')
+FROM [Person].[PersonPhone]
+
+-- 11) Вывести в одну строку обращение (title - как это по-русски?), имя и фамилию каждого человека из [Person].[Person] через пробел.
+SELECT CONCAT_WS (' ',[FirstName], [LastName])
+FROM [Person].[Person]
+
+/* 12) Вывести обращение (title), имя и фамилия каждого человека из [Person].[Person], для которого указано обращение.
+При этом сокращение Mr. заменить на Mister, а сокращение Ms. - на Missis. */
+SELECT IIF ([Title]='Mr.',(STUFF([Title], 2, 2,'ister')), (STUFF([Title], 2, 2, 'issis'))), [FirstName], [LastName]
+FROM [Person].[Person]
+WHERE [Title] IS NOT NULL
+
+/* 13) Вывести из таблицы [Person].[Person] в одну строку инициалы человека (FirstName и MiddleName) и фамилию. 
+Расположить записи в алфавитном порядке по первой букве имени. */
+SELECT (CONCAT_WS('. ', (LEFT([FirstName], 1)), CONCAT_WS('. ', (LEFT([MiddleName], 1)),[LastName])))
+FROM [Person].[Person] 
+ORDER BY [FirstName]
+
+-- 14) Вывести название страны и количество букв в названии страны из таблицы [Person].[CountryRegion].
+SELECT [Name], LEN([Name])
+FROM [Person].[CountryRegion]
+
+-- 15) Вывести строчными буквами названия цветов товаров, в которых буквы переставлены в обратном порядке.
+SELECT [Color],LOWER (REVERSE([Color])) AS ReverseColor
+FROM [Production].[Product]
+WHERE [Color] IS NOT NULL
+
+-- 16) Вывести в одну строку все имеющиеся размеры товаров, выраженные числом, с единицей измерения через одинарный пробел.
+SELECT DISTINCT[Size] + SPACE (1) + [SizeUnitMeasureCode]
+FROM [Production].[Product]
+WHERE [Size] IS NOT NULL AND [SizeUnitMeasureCode] IS NOT NULL
+
+/* 17) Вывести в одну строку массы всех продуктов, преобразованные в трехзначную символьную строку и округленные до целого числа из таблицы [Production].[Product].
+В эту же строку через пробел добавить единицу измерения.*/
+
+SELECT STR([Weight], 3, 0) + SPACE (1) + [WeightUnitMeasureCode]
+FROM [Production].[Product]
+WHERE [Weight] IS NOT NULL AND [WeightUnitMeasureCode] IS NOT NULL
+
+-- 18) Вывести названия всех товаров и их цены, округленные до ближайшего наибольшего целого цисла.
+SELECT [Name], FLOOR([ListPrice])
+FROM [Production].[Product]
+
+-- 19) Вывести название продукта и его цену с указанием символа валюты ($).
+SELECT [Name], FORMAT([ListPrice], 'C', 'en-us') AS 'Price in dollars'
+FROM [Production].[Product]
+
+-- Тут у меня закончилась фантазия :)
+
+-- 20) Вывести дату, которая на 365 месяцев меньше текущей даты.
+SELECT DATEADD(month,-365, GETDATE())
+
+/* 21) Проверить, совпадает ли день недели, в который праздновали день сурка в 2022 году, с аналогичным днем в первого празднования в 1887 году.
+В случае совпадения вывести 'Bingo', в ином случае - 'Failure'*/
+SELECT 
+CASE WHEN DATENAME(weekday,'1887-02-02')=DATENAME(weekday,'2022-02-02') THEN 'Bingo' 
+	ELSE 'Failure'
+END 'Groundhog Day'
