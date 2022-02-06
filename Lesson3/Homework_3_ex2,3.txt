@@ -1,0 +1,78 @@
+Yulya Akhremchyk
+Homework 3, ex. 2 and 3
+
+/* 2.	Решите на базе данных AdventureWorks2017 следующие задачи. 
+	a)	Вывести список цен в виде текстового комментария, основанного на диапазоне цен для продукта:
+a.	StandardCost равен 0 или не определен – ‘Not for sale’  
+b.	StandardCost больше 0, но меньше 100 – ‘<$100’ 
+c.	StandardCost больше или равно 100, но меньше 500 - ‘ <$500' 
+d.	Иначе - ‘ >= $500'
+Вывести имя продукта и новое поле PriceRange.
+*/
+SELECT [Name],
+	CASE WHEN [StandardCost] = 0 OR [StandardCost] IS NULL THEN 'Not for sale'
+		WHEN [StandardCost] > 0 AND [StandardCost] < 100 THEN '$100'
+		WHEN [StandardCost] >= 100 AND [StandardCost] < 500 THEN '<$500'
+		ELSE '>=$500'
+	END PriceRange
+FROM [Production].[Product]
+
+-- b)	Найти ProductID, BusinessEntityID и имя поставщика продукции из Purchasing.ProductVendor и Purchasing.Vendor, где StandardPrice больше $10. Также в имени вендора должна присутствовать (вне зависимости от положения) буква X или имя должно начинаться на букву N.
+
+SELECT pv.[ProductID], pv.[BusinessEntityID], v.[Name]
+FROM [Purchasing].[ProductVendor] pv
+	JOIN [Purchasing].[Vendor] v ON pv.BusinessEntityID = v.BusinessEntityID
+WHERE pv.[StandardPrice] > 10
+	AND (v.[Name] LIKE '%X%' OR v.[Name] LIKE 'N%')
+
+-- c)	Найти имена всех вендоров, продукция которых не продавалась за всё время.
+SELECT v.[Name]
+FROM [Purchasing].[Vendor] v
+	LEFT JOIN [Purchasing].[ProductVendor] pv ON v.BusinessEntityID = pv.BusinessEntityID
+WHERE pv.BusinessEntityID IS NULL
+
+/*3. Решить следующие задачи для тестовой базы данных.
+Типы фармпрепаратов - TypesMedications
+Фармпрепараты - Medications
+Фирмы-производители - Producers
+Продажи - Sales
+Аптечные пункты - Chemists
+Кассовые чеки - Receipts
+*/
+-- a)	Найдите производителей, препараты которых не продавались в 2019 году.
+SELECT p.Name
+FROM Producers p
+	LEFT JOIN Medications m ON p.id = m.producer_id
+	LEFT JOIN Sales s ON m.id = s.medication_id
+	LEFT JOIN Receipts r ON s.receipt_id = r.id
+WHERE YEAR(r.date) <> '2019'
+
+-- b)	Выведите увеличенную в 2 раза цену препаратов типа А. 
+-- Если понимать фразу "цену препаратов типа А" как цену каждого препарата
+SELECT m.price*2
+FROM Medications m
+	JOIN TypesMedications tm ON m.type_id = tm.id
+WHERE tm.type = 'A'
+
+-- Если понимать фразу "цену препаратов типа А" как цену всех препаратов типа А вместе
+SELECT 2*SUM(m.price)
+FROM Medications m
+	JOIN TypesMedications tm ON m.type_id = tm.id
+WHERE tm.type = 'A'
+GROUP BY tm.type
+
+-- c)	Найдите производителей и кол-во фармпрепаратов для кажого из них, где препарат не относится к типу А.
+SELECT p.name, COUNT(m.id)
+FROM Producers p
+	JOIN Medications m ON p.id = m.producer_id
+	JOIN TypesMedications tm ON m.type_id = tm.id
+	WHERE tm.type != 'A'
+GROUP BY p.name
+
+-- d)	Вывести название аптеки и названия фармпрепаратов, которые в ней продавались по субботам.
+SELECT ch.name, m.title
+FROM Chemists ch
+	JOIN Sales s ON ch.id = s.chemists_id
+	JOIN Medications m ON s.medication_id = m.id
+	JOIN Receipts r ON s.receipts_id = r.id
+WHERE DATEPART(weekday, r.date) = 6 -- если начало недели отсчитывать с понедельника 
