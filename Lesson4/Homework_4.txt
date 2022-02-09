@@ -1,0 +1,103 @@
+/* Yulya Akhremchyk
+Homework 4
+
+3. При каких значениях оконные функции Row Number, Rank и Dense Rank вернут одинаковый результат?
+Ответ: В случае если значения каждой строки в таблице по каждой выводимой через SELECT колонкам будут уникальны и отличны между собой.  jnkbxys vt;le cj,jq
+Возможно, объяснила непонятно, но например:*/
+SELECT p.FirstName, p.LastName
+	,ROW_NUMBER() OVER (ORDER BY p.FirstName) AS "Row Number" 
+    ,RANK() OVER (ORDER BY p.FirstName) AS Rank
+    ,DENSE_RANK() OVER (ORDER BY p.FirstName) AS "Dense Rank"
+FROM Sales.SalesPerson AS s   
+JOIN Person.Person AS p ON s.BusinessEntityID = p.BusinessEntityID  
+JOIN Person.Address AS a ON a.AddressID = p.BusinessEntityID  
+/* То есть в данном случае нет ни повторов по имени, ни по фамилии, каждая выводимая строка уникальна по каждому выводимому столбцу.
+Конечно, может быть, это частный случай и есть еще варианты :) */
+
+-- 4. a) Проверьте, есть ли здесь UnitMeasureCode, начинающиеся на букву ‘Т’.
+SELECT [UnitMeasureCode]
+FROM [Production].[UnitMeasure]
+WHERE [UnitMeasureCode] LIKE 'T%' -- no UnitMeasureCodes starting with 'T'
+
+SELECT [ModifiedDate]
+FROM [Production].[UnitMeasure]
+
+-- Сколько всего различных кодов здесь есть? 
+SELECT COUNT(DISTINCT([UnitMeasureCode]))
+FROM [Production].[UnitMeasure] -- 38 codes
+
+ -- Вставьте следующий набор данных в таблицу.
+INSERT INTO [Production].[UnitMeasure] ([UnitMeasureCode], [Name], [ModifiedDate])
+VALUES ('TT1', 'Test 1', '2020-09-09'),
+	('TT2', 'Test 2', GETDATE())
+
+-- Проверьте теперь, есть ли здесь UnitMeasureCode, начинающиеся на букву ‘Т’.
+SELECT [UnitMeasureCode]
+FROM [Production].[UnitMeasure]
+WHERE [UnitMeasureCode] LIKE 'T%' -- 2 codes
+
+/* b) Теперь загрузите вставленный набор в новую, не существующую таблицу Production.UnitMeasureTest.
+Догрузите сюда информацию из Production.UnitMeasure по UnitMeasureCode = ‘CAN’. Посмотрите результат в отсортированном виде по коду. */
+SELECT [UnitMeasureCode],[Name],[ModifiedDate]
+INTO [Production].[UnitMeasureCodeTest] -- Я случайно назвала таблицу [Production].[UnitMeasureCodeTest], не как в условии :(
+FROM [Production].[UnitMeasure] p
+WHERE p.UnitMeasureCode IN ('TT1', 'TT2', 'CAN')
+ORDER BY [UnitMeasureCode]
+
+-- c)	Измените UnitMeasureCode для всего набора из Production.UnitMeasureTest на ‘TTT’.
+UPDATE [Production].[UnitMeasureCodeTest]
+SET [UnitMeasureCode] ='TTT'
+
+-- d)	Удалите все строки из Production.UnitMeasureTest.
+DELETE
+FROM [Production].[UnitMeasureCodeTest]
+
+/*
+SELECT [UnitMeasureCode],[Name],[ModifiedDate]
+FROM [Production].[UnitMeasureCodeTest]
+ORDER BY [UnitMeasureCode]
+*/
+
+/* e) Найдите информацию из Sales.SalesOrderDetail по заказам 43659,43664.
+С помощью оконных функций MAX, MIN, AVG найдем агрегаты по LineTotal для каждого SalesOrderID. */
+SELECT [SalesOrderID],
+	MAX([LineTotal]) OVER (PARTITION BY [SalesOrderID]) AS Max,
+	MIN([LineTotal]) OVER (PARTITION BY [SalesOrderID]) AS Min,
+	AVG([LineTotal]) OVER (PARTITION BY [SalesOrderID]) AS Avg
+FROM [Sales].[SalesOrderDetail]
+WHERE [SalesOrderID] IN (43659, 43664)
+
+-- f) Изучите данные в объекте Sales.vSalesPerson.
+SELECT FirstName, LastName,
+	RANK () OVER (ORDER BY [SalesYTD] DESC) AS 'Rating', -- Создайте рейтинг cреди продавцов на основе годовых продаж SalesYTD, используя ранжирующую оконную функцию.
+	CONCAT(LEFT(UPPER(LastName),3),'login',ISNULL(TerritoryGroup, '')) AS 'Login' -- Добавьте поле Login (3 первые буквы фамилии в верхнем регистре + ‘login’ + TerritoryGroup (Null заменить на пустое значение)).
+FROM [Sales].[vSalesPerson]
+
+-- Кто возглавляет рейтинг? Linda Mitchell
+SELECT TOP 1 FirstName, LastName,
+	RANK () OVER (ORDER BY [SalesYTD] DESC) AS 'Rating'
+FROM [Sales].[vSalesPerson]
+
+-- А кто возглавлял рейтинг в прошлом году (SalesLastYear)? Ranjit Varkey Chudukatil
+SELECT TOP 1 FirstName, LastName,
+	RANK () OVER (ORDER BY [SalesLastYear] DESC) AS 'Rating'
+FROM [Sales].[vSalesPerson]
+
+-- g) Найдите первый будний день месяца (FROM не используем). Нужен стандартный код на все времена.
+SELECT CASE WHEN (DATENAME(weekday, (CAST((DATEADD(day, 1, EOMONTH(GETDATE(), -1))) AS datetimeoffset (7))))) = 'Saturday' THEN DATEADD(DAY,3,EOMONTH(GETDATE(),-1))
+			WHEN (DATENAME(weekday, (CAST((DATEADD(day, 1, EOMONTH(GETDATE(), -1))) AS datetimeoffset (7))))) = 'Sunday' THEN DATEADD(DAY,2,EOMONTH(GETDATE(),-1))
+			ELSE DATEADD(DAY,1,EOMONTH(GETDATE(),-1))
+END
+-- GETDATE() можно заменить на любую дату :)
+
+/* 5.	 Давайте еще раз остановимся и отточим понимание функции count. Найдите значения count(1), count(name), count(id), count(*) для следующей таблицы:
+Id(PK)	Name		DepName
+1		null		A
+2		null		null
+3		A			C
+4		B			C
+
+SELECT COUNT(1) FROM table - вернет значение 4 (считает кол-во строк, в т.ч. NULL)
+SELECT COUNT(name) FROM table - вернет значение 2 (не считает NULL в колонке Name)
+SELECT COUNT(id) FROM table - вернет значение 4 (в колонке id нет NULL)
+SELECT COUNT(*) FROM table - вернет значение 4 (считает повторы и строки с NULL) */
