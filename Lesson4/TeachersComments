@@ -1,0 +1,11 @@
+Well done!
+
+3.
+The better answer would be: all results for ranling functions are equal if the value for ordering is unique in each row.
+Your answer is also correct, just not verbalized well :)
+
+4.
+f)
+It would be better to use the view in this query, not it's inner code. You can just use ...FROM Sales.vSalesPerson.
+
+Mark: 10
