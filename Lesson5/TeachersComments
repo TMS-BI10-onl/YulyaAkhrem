@@ -1,0 +1,11 @@
+Well done!
+
+6. -0.25
+We haven't learnt any constraints yet.
+
+11.
+Your solution: it's not the best replacement, but it's working. :) 
+Theoretically, the idea was to find the biggest repeateble part of the code and create a variable for it. Your variables are pretty much the same. You could reference date2 and date3 to date1 with one function.
+
+Mark: 10
+Test mark: 10
