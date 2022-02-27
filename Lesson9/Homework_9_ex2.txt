@@ -1,0 +1,17 @@
+/* Yulya Akhremchyk
+Homework 9
+2. Individual Task
+Если у нас дана 1 таблица, не связанная через внешние ключи с другими, в которой уже есть в том числе имя сына/дочери, фамилия и имя отца,
+в этом случае для того, чтобы получить ФИО Дмитрия и его отца, нужно соединить для сына LastName, FirstName, для отца LastName, ParentName (фамилия у них одна). */
+
+SELECT CONCAT (FirstName, ' ', LastName) AS 'Son',
+CONCAT (ParentName, ' ', LastName) AS 'Father'
+FROM People
+WHERE FirstName = 'Дмитрий'
+
+/* Если же есть другие таблицы (Father c ID_Father, Mother c ID_Mother), связанные с People через внешние ключи, то: */
+SELECT CONCAT (p.LastName,' ', p.FirstName, ' ',p.ParentName) AS 'Son',
+CONCAT (f.LastName, ' ', f.FirstName,' ', f.ParentName) AS 'Father'
+FROM People p
+	JOIN Father f ON p.ID_Father = f.ID_Father
+WHERE p.FirstName = 'Дмитрий'
