@@ -1,0 +1,42 @@
+-- TEST 2
+-- Yulya Akhremchyk
+
+-- 1.--Найдите людей и их номера телефонов, код города которых начинается на  4 и заканчивается на 5.
+-- (таблицы Person.PersonPhone, Person.Person) 
+
+SELECT p.[FirstName], p.[LastName], ph.[PhoneNumber]
+FROM [Person].[Person] p
+	JOIN [Person].[PersonPhone] ph ON p.[BusinessEntityID] = ph.[BusinessEntityID]
+WHERE [PhoneNumber] LIKE '4_5%'
+
+
+/* 2) Отнести каждого человека из [HumanResources].[Employee] в свою возрастную категорию:
+Adolescence: 17-20
+Adults: 21-59
+Elderly: 60-75
+Senile: 76-90 */
+
+SELECT e.[NationalIDNumber], p.[FirstName], p.[LastName],
+		CASE WHEN DATEDIFF(year,[BirthDate],GETDATE()) BETWEEN 17 AND 20 THEN 'Adolescence'
+			WHEN DATEDIFF(year,[BirthDate],GETDATE()) BETWEEN 21 AND 59 THEN 'Adults'
+			WHEN DATEDIFF(year,[BirthDate],GETdate()) BETWEEN 60 AND 275THEN 'Elderly'
+			ELSE 'Senile'
+END
+FROM [HumanResources].[Employee] e
+	JOIN [Person].[Person] p ON e.[BusinessEntityID] = p.[BusinessEntityID]
+
+/* 3) Вывести самый дорогой продукт для каждого цвета из [Production].[Product] */
+
+SELECT [Name], [StandardCost]
+FROM (SELECT [Name], [StandardCost], MAX([StandardCost]) OVER (PARTITION BY [Color]) AS max_cost
+	FROM [Production].[Product]) p
+WHERE [StandardCost] = max_cost
+
+/*  4. 11 Кинопрокат
+Требования:
+7 сущностей + придумать 2 задачи */
+Сущности: Фильмы (название фильма, год выпуска, киностудия, режиссер, актеры)
+	Киностудия (название, адрес, год основания)
+	Режиссеры (ФИО, год рождения, контакты, киностудия)
+	Кинотеатры (название, адрес, название фильма, даты показа)
+	Актеры (ФИО, дата рождения, контакты, название фильма)
