@@ -1,0 +1,106 @@
+/* Yulya Akhremchyk
+Homework 11
+
+3. Создать таблицу с количеством использования функций, используя data_for_merge.csv, заполнить ее через оператор merge. */
+
+SELECT *
+FROM [dbo].[DataForMerge]
+
+CREATE TABLE Functions_results
+	(Function_name nvarchar (50) NOT NULL,
+	Function_count INT)
+
+SELECT * 
+FROM [dbo].[Functions_results]
+
+-- Checking column [a] from [dbo].[DataForMerge]
+MERGE Functions_results AS t 
+USING (SELECT a FROM DataForMerge) AS s_a
+ON t.Function_name=s_a.a
+WHEN MATCHED 
+    THEN UPDATE SET t.Function_count=t.Function_count+1
+WHEN NOT MATCHED AND s_a.a IS NOT NULL
+	THEN INSERT (Function_name, Function_count)
+	VALUES (s_a.a,1);
+
+-- Checking column [b] from [dbo].[DataForMerge]
+MERGE Functions_results AS t 
+USING (SELECT b FROM DataForMerge) AS s_b
+ON t.Function_name=s_b.b
+WHEN MATCHED 
+    THEN UPDATE SET t.Function_count=t.Function_count+1
+WHEN NOT MATCHED AND s_b.b IS NOT NULL
+	THEN INSERT (Function_name, Function_count)
+	VALUES (s_b.b,1);
+  
+-- Checking column [с] from [dbo].[DataForMerge]
+MERGE Functions_results AS t 
+USING (SELECT c FROM DataForMerge) AS s_c
+ON t.Function_name=s_c.c
+WHEN MATCHED 
+    THEN UPDATE SET t.Function_count=t.Function_count+1
+WHEN NOT MATCHED AND s_c.c IS NOT NULL
+	THEN INSERT (Function_name, Function_count)
+	VALUES (s_c.c,1);
+
+-- Checking column [d] from [dbo].[DataForMerge]
+MERGE Functions_results AS t 
+USING (SELECT d FROM DataForMerge) AS s_d
+ON t.Function_name=s_d.d
+WHEN MATCHED 
+    THEN UPDATE SET t.Function_count=t.Function_count+1
+WHEN NOT MATCHED AND s_d.d IS NOT NULL
+	THEN INSERT (Function_name, Function_count)
+	VALUES (s_d.d,1);
+
+-- Checking column [e] from [dbo].[DataForMerge]
+MERGE Functions_results AS t 
+USING (SELECT e FROM DataForMerge) AS s_e
+ON t.Function_name=s_e.e
+WHEN MATCHED 
+    THEN UPDATE SET t.Function_count=t.Function_count+1
+WHEN NOT MATCHED AND s_e.e IS NOT NULL
+	THEN INSERT (Function_name, Function_count)
+	VALUES (s_e.e,1);
+
+-- Checking column [f] from [dbo].[DataForMerge]
+MERGE Functions_results AS t 
+USING (SELECT f FROM DataForMerge) AS s_f
+ON t.Function_name=s_f.f
+WHEN MATCHED 
+    THEN UPDATE SET t.Function_count=t.Function_count+1
+WHEN NOT MATCHED AND s_f.f IS NOT NULL
+	THEN INSERT (Function_name, Function_count)
+	VALUES (s_f.f,1);
+	
+-- Checking column [g] from [dbo].[DataForMerge]
+MERGE Functions_results AS t 
+USING (SELECT g FROM DataForMerge) AS s_g
+ON t.Function_name=s_g.g
+WHEN MATCHED 
+    THEN UPDATE SET t.Function_count=t.Function_count+1
+WHEN NOT MATCHED AND s_g.g IS NOT NULL
+	THEN INSERT (Function_name, Function_count)
+	VALUES (s_g.g,1);
+
+-- Checking column [h] from [dbo].[DataForMerge]
+MERGE Functions_results AS t 
+USING (SELECT h FROM DataForMerge) AS s_h
+ON t.Function_name=s_h.h
+WHEN MATCHED 
+    THEN UPDATE SET t.Function_count=t.Function_count+1
+WHEN NOT MATCHED AND s_h.h IS NOT NULL
+	THEN INSERT (Function_name, Function_count)
+	VALUES (s_h.h,1);
+
+-- Checking column [i] from [dbo].[DataForMerge]
+MERGE Functions_results AS t 
+USING (SELECT i FROM DataForMerge) AS s_i
+ON t.Function_name=s_i.i
+WHEN MATCHED 
+    THEN UPDATE SET t.Function_count=t.Function_count+1
+WHEN NOT MATCHED AND s_i.i IS NOT NULL
+	THEN INSERT (Function_name, Function_count)
+	VALUES (s_i.i,1);
+
+/* P.S. I guess it might be a way too primitive solution to this task, but that's the only one that worked for me :( */
