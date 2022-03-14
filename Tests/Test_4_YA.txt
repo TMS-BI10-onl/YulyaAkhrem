@@ -1,0 +1,30 @@
+Yulya Akhremchyk
+Проверочная работа 4
+
+-- 1. Написать запрос на добавление в таблицу manufacturer нового производителя HP из Америки.
+INSERT INTO manufacturer (name, country_id)
+VALUES ('HP', '4')
+
+-- 2.	Написать запрос, благодаря которому возраст пользователя Андрей в таблице user уменьшится в 3 раза.
+UPDATE user
+SET age=age/3
+WHERE name = 'Андрей'
+
+-- 3.	Найти название продукта с максимальной ценой.
+SELECT name, price
+FROM product
+WHERE price = (SELECT MAX(price) as max_price
+				FROM product)
+
+/* 4.	Написать запрос на выборку всех пользователей с телефонами,
+начинающимися на 3 и заканчивающимися на 4, либо с возрастом > 35. */
+SELECT name
+FROM user u
+	JOIN phone p ON u.id=p.user_id
+WHERE p.name LIKE '_3%4' OR u.age > 35
+
+-- 5.	Найти топ 5 пользователей, кто купил больше всего продуктов.
+SELECT TOP 5 WITH TIES u.name, COUNT (o.product_id) OVER (PARTITION BY o.user_id) as max_buy 
+FROM user u
+	JOIN order o ON u.id=o.user.id
+ORDER BY max_buy DESC
