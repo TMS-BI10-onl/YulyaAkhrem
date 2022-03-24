@@ -1,0 +1,75 @@
+-- Yulya Akhremchyk
+-- Test 5
+
+-- 1. Найти ProductSubcategoryID из Production.Product, где мин вес такого ProductSubcategoryID больше 150. 
+
+SELECT ProductSubcategoryID, MIN (Weight)
+FROM Production.Product
+GROUP BY ProductSubcategoryID
+HAVING MIN(Weight) > 150
+-- учитывается NULL, т.е. выводит минимальный вес продукта среди продуктов без категорий
+
+SELECT ProductSubcategoryID, MIN (Weight)
+FROM Production.Product
+WHERE ProductSubcategoryID IS NOT NULL -- не учитывает NULL
+GROUP BY ProductSubcategoryID
+HAVING MIN(Weight) > 150
+
+-- 2. Найти самый дорогой продукт (поле StandardCost) из Production.Product. (4 способа)
+--1 method
+SELECT TOP 1 WITH TIES Name, StandardCost
+FROM Production.Product
+ORDER BY StandardCost DESC
+
+-- 2 method
+SELECT Name, StandardCost
+FROM Production.Product
+WHERE StandardCost = (SELECT MAX(StandardCost) AS max_cost
+						FROM Production.Product)
+
+--3 method
+SELECT Name, StandardCost
+FROM(SELECT Name, StandardCost, RANK() OVER (ORDER BY StandardCost DESC) as rnk
+		FROM Production.Product) t
+WHERE rnk=1
+
+-- 4 method
+SELECT Name, StandardCost
+FROM 
+(SELECT Name, StandardCost, MAX(StandardCost) OVER () as max_cost
+		FROM Production.Product) t
+WHERE StandardCost=max_cost
+
+-- 3. Найти страны, в которые за последний год не было куплено ни одного тура. (схема GROUP2)
+SELECT DISTINCT Country
+FROM Tours_dim t
+WHERE IDTour NOT IN 
+	(SELECT s.IDTour FROM Sales_fct WHERE YEAR(DataSales) = YEAR (GETDATE())) -- последний год как текущий
+
+-- 4. Найти для каждого менеджера кол-во продаж за последние 15 лет.  (схема GROUP2)
+SELECT FirstName, LastName, COUNT (IDSale) AS cnt
+FROM Managers_dim m 
+	LEFT JOIN Sales_fct s ON m.IDManager = s.IDManager
+WHERE YEAR (DataSales) BETWEEN YEAR(DATEADD(year, -15, GETDATE())) AND YEAR(GETDATE())
+GROUP BY FirstName, LastName
+
+-- 5. 
+Users (
+    id bigint NOT NULL,
+    email varchar(255) NOT NULL
+);
+
+Notifications (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL, -- foreign key
+    category varchar(100),
+    is_read boolean DEFAULT false
+);
+
+-- Найти список категорий для пользователя alex@gmail.com, в которых более 50 непрочитанных нотификаций
+SELECT DISTINCT n.category, COUNT(n.is_read) as cnt_status
+FROM Notifications n
+	LEFT JOIN Users u ON n.user_id = u.id
+WHERE u.email = 'alex@gmail.com' AND n.is_read='false'
+GROUP BY n.category
+HAVING COUNT(n.is_read) > 50
