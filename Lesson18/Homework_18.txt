@@ -1,0 +1,46 @@
+-- Homework 18
+-- Yulya Akhremchyk
+
+-- 1. Покажите всех сотрудников, которые имеют в подчинении больше 6-ти сотрудников.
+SELECT m.First_Name, m.Last_Name, COUNT(1) as emp_cnt
+FROM Employees	e
+	LEFT JOIN Employees m ON e.Manager_ID = m.Employee_ID
+GROUP BY m.First_Name, m.Last_Name
+HAVING COUNT(1) > 6
+
+-- 2. Вывести min и max зарплату с вычетом commission_pct для каждого департамента (commission_pct на базе указывается в процентах).
+SELECT Department_ID, 
+		MIN((Salary*(1-Commission_Pct/100)) as min_salary,
+		MAX((Salary*(1-Commission_Pct/100)) as max_salary
+FROM Employees
+GROUP BY Department_ID
+
+-- 3. Вывести только регион, где работают больше всего людей.
+SELECT TOP 1 WITH TIES Region_Name
+FROM Regions r
+	JOIN Countries c ON r.Region_ID = c.Region_ID
+	JOIN Locations l ON c.Country_ID = l.Country_ID
+	JOIN Departments d ON l.Department_ID = d.Department_ID
+	JOIN Employees e ON d.Department_ID = e.Department_ID
+GROUP BY Region_Name
+ORDER BY COUNT (1) DESC
+
+-- 4. Найдите разницу в процентах между средней зп по каждому департаменту от общей средней (по всем департаментам).
+SELECT Department_ID, (AVG(t1.Salary)/t2.avg*100) AS salary_diff
+FROM Employees t1
+	CROSS JOIN (SELECT AVG(Salary) as avg
+				FROM Employees) t2
+GROUP BY Department_ID, t2.avg
+
+-- 5.	Найдите людей, кто проработал больше, чем 10 лет в одном департаменте.
+SELECT First_Name, Last_Name, j.Department_ID
+FROM Employees e 
+	JOIN Job_History j ON e.Employee_ID = j.Employee_ID
+WHERE DATEDIFF(year, Start_Date, GETDATE()) > 10 AND End_Date IS NULL
+
+-- 6. Найдите людей, кто занимает 5-10 место по размеру зарплаты. 
+SELECT *
+FROM (SELECT First_Name, Last_Name, Salary,
+	DENSE_RANK() OVER (ORDER BY Salary DESC) as salary_rnk
+	FROM Employees) t
+WHERE salary_rnk BETWEEN 5 AND 10
