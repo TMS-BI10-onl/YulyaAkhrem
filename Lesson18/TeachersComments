@@ -1,0 +1,11 @@
+Well done!
+
+4. -0.5
+WOW. o_o
+The solution is working and working correctly, but it's soooo bad in the perfomance.
+
+5. -0.5
+The problem is that you're counting only current (last) department, which employee is working in. But the same employee can have a previous department where he worked for more than 10 years.
+
+Mark: 9
+Test mark: 10
